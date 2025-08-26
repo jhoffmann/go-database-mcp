@@ -160,6 +160,70 @@ func TestQueryValidator_ValidateDatabaseAccess(t *testing.T) {
 			query:            "SELECT * FROM pg_catalog.pg_tables",
 			wantErr:          false,
 		},
+		{
+			name:             "table.column references should be allowed",
+			allowedDatabases: []string{},
+			query:            "SELECT users.id, users.name FROM users WHERE users.active = 1",
+			wantErr:          false,
+		},
+		{
+			name:             "complex query with table.column references",
+			allowedDatabases: []string{},
+			query:            "SELECT ls010_proposals.id, ls010_proposals.name, ls010_proposals_cstm.proposal_id_c FROM ls010_proposals INNER JOIN ls010_proposals_cstm ON ls010_proposals.id = ls010_proposals_cstm.id_c",
+			wantErr:          false,
+		},
+		{
+			name:             "table.column in WHERE clause should be allowed",
+			allowedDatabases: []string{},
+			query:            "SELECT * FROM orders WHERE orders.user_id = 123 AND orders.status = 'active'",
+			wantErr:          false,
+		},
+		{
+			name:             "database.table in FROM clause should be validated",
+			allowedDatabases: []string{"testdb"},
+			query:            "SELECT * FROM production.users",
+			wantErr:          true,
+			errMsg:           "access denied: database 'production' is not in allowed databases list",
+		},
+		{
+			name:             "database.table in JOIN clause should be validated",
+			allowedDatabases: []string{"testdb"},
+			query:            "SELECT * FROM testdb.users u JOIN production.orders o ON u.id = o.user_id",
+			wantErr:          true,
+			errMsg:           "access denied: database 'production' is not in allowed databases list",
+		},
+		{
+			name:             "complex query with many table.column references should pass",
+			allowedDatabases: []string{},
+			query: `SELECT
+				inventory.item_id as item_id,
+				inventory.item_name as item_name,
+				catalog_data.sku_code,
+				catalog_data.retail_price as item_price,
+				shipments.tracking_id as tracking_id,
+				shipments.carrier_name as carrier_name,
+				logistics_data.route_number,
+				shipments.dispatch_date as ship_date,
+				CASE
+					WHEN catalog_data.retail_price > 0 THEN
+						ROUND(((logistics_data.handling_cost -
+						catalog_data.wholesale_price) / catalog_data.
+						retail_price) * 100, 2)
+					ELSE NULL
+				END as profit_margin
+			FROM inventory
+			INNER JOIN catalog_data ON inventory.item_id = catalog_data.item_ref
+			INNER JOIN item_shipment_map ON inventory.item_id = item_shipment_map.item_key
+			INNER JOIN shipments ON item_shipment_map.shipment_ref = shipments.tracking_id
+			INNER JOIN logistics_data ON shipments.tracking_id = logistics_data.shipment_ref
+			WHERE
+				inventory.is_active = 1
+				AND shipments.is_cancelled = 0
+				AND catalog_data.sale_date IS NOT NULL
+				AND DATE(shipments.dispatch_date) >= catalog_data.sale_date
+			ORDER BY inventory.item_id, shipments.dispatch_date ASC`,
+			wantErr: false,
+		},
 	}
 
 	for _, tt := range tests {

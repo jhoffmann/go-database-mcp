@@ -93,8 +93,9 @@ func (v *QueryValidator) validateDatabaseAccess(query string) error {
 	}
 
 	// Check for fully qualified table names (database.table)
-	// This regex looks for word.word patterns that could be database.table
-	qualifiedTablePattern := regexp.MustCompile(`(?i)\b([a-zA-Z_][a-zA-Z0-9_]*)\s*\.\s*[a-zA-Z_][a-zA-Z0-9_]*(?:\s|$|,|\)|;)`)
+	// This regex looks for database.table patterns in contexts where they would be table references,
+	// not column references. We look for word.word patterns after keywords like FROM, JOIN, UPDATE, etc.
+	qualifiedTablePattern := regexp.MustCompile(`(?i)(?:FROM|JOIN|UPDATE|INSERT\s+INTO|DELETE\s+FROM|INTO)\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*\.\s*[a-zA-Z_][a-zA-Z0-9_]*`)
 	matches := qualifiedTablePattern.FindAllStringSubmatch(query, -1)
 	for _, match := range matches {
 		if len(match) > 1 {
