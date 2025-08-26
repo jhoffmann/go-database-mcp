@@ -10,7 +10,7 @@ GOOS = "linux"
 
 [tasks.run]
 description = "Run the application"
-run = "go run ./cmd/database-mcp"
+run = "go run ."
 
 [tasks.test]
 description = "Run tests"
@@ -34,16 +34,16 @@ description = "Build the project binaries"
 sources = ['go.mod', '*.go', '**/*.go']
 
 [tasks.build-linux]
-run = "go build -o build/{{vars.project}} ./cmd/database-mcp"
+run = "go build -o build/{{vars.project}} ."
 outputs = ["build/{{vars.project}}"]
 
 [tasks.build-linux-static]
-run = "go build -a -ldflags '-extldflags \"-static\"' -o build/{{vars.project}} ./cmd/database-mcp"
+run = "go build -a -ldflags '-extldflags \"-static\"' -o build/{{vars.project}} ."
 outputs = ["build/{{vars.project}}"]
 
 [tasks.build-windows]
 env = { GOARCH = "amd64", GOOS = "windows" }
-run = "go build -o build/{{vars.project}}.exe ./cmd/database-mcp"
+run = "go build -o build/{{vars.project}}.exe ."
 outputs = ["build/{{vars.project}}.exe"]
 
 [tasks.build-container]

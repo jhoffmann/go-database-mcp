@@ -2,8 +2,8 @@
 
 ## Build Commands
 
-- **Build**: `go build -o build/database-mcp ./cmd/database-mcp`
-- **Run**: `./build/database-mcp` or `go run ./cmd/database-mcp`
+- **Build**: `go build -o build/database-mcp .`
+- **Run**: `./build/database-mcp` or `go run .`
 - **Test**: `go test ./...` (single test: `go test -run TestName ./pkg/path`)
 - **Coverage**: `go test -coverprofile=coverage.out ./... && go tool cover -html=coverage.out`
 - **Format**: `go fmt ./...`
@@ -38,7 +38,7 @@
 
 ## Project Structure
 
-- `cmd/database-mcp/`: Main application entry point
+- Root directory: Main application entry point (main.go)
 - `internal/`: Private application code (config, database, handlers, auth)
 - Tests: Add tests alongside source files with `_test.go` suffix
 - Configuration uses environment variables with envconfig tags and .env file support
