@@ -68,7 +68,7 @@ DB_PASSWORD=mypassword
 
 ## Integration with Agentic Editors
 
-### OpenCode (https://opencode.ai/)
+### OpenCode (https://opencode.ai)
 
 Add the MCP server to your OpenCode configuration:
 
