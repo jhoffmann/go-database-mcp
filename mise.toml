@@ -1,8 +1,5 @@
-[tools]
-go = "1.24.6"
-
 [vars]
-project = "database-mcp"
+project = "go-database-mcp"
 
 [env]
 CGO_ENABLED = "0"
@@ -18,7 +15,7 @@ run = "go test -tags=coverage ./... -cover"
 
 [tasks.clean]
 description = "Clean build and test artifacts"
-run = ["rm -rf bin/", "rm -f *.out *.html *.sql", "go clean -testcache"]
+run = ["rm -rf build/", "rm -f *.out *.html *.sql", "go clean -testcache"]
 
 [tasks.fmt]
 description = "Format code"
