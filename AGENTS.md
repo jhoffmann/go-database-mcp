@@ -12,6 +12,12 @@
 ## Code Quality Requirements
 
 - **Test Coverage**: We must achieve **over 80% test coverage** to satisfy corporate quality gate requirements
+- **Shift-Left Testing**: Testing must be integrated from the earliest phases of development:
+  - Write tests immediately after implementing each function or method
+  - Test-driven development (TDD) approach when possible
+  - Never defer testing to later phases - test as you build
+  - Each pull request must include corresponding tests
+  - Continuous testing throughout development, not just at the end
 - **Testable Design**: Code must be designed with testability in mind:
   - Use dependency injection for database connections and external dependencies
   - Create interfaces for external dependencies (file system, network, etc.)
@@ -39,10 +45,20 @@
 
 ## Testing Strategy
 
-- **Unit Tests**: Test individual functions and methods in isolation
+- **Shift-Left Approach**: Testing is integrated into every development phase, not deferred to the end
+- **Unit Tests**: Test individual functions and methods in isolation immediately after implementation
 - **Integration Tests**: Test database operations with real connections (using test containers)
 - **Interface Mocking**: Create mocks for database interface to test business logic without real connections
 - **Table-driven Tests**: Use table-driven tests for comprehensive input/output validation
 - **Error Path Testing**: Ensure all error conditions are tested and covered
 - **Configuration Testing**: Test all configuration validation and loading scenarios
+- **Continuous Validation**: Run tests frequently during development to catch issues early
+
+## Development Workflow
+
+1. **Design Phase**: Consider testability when designing interfaces and functions
+2. **Implementation**: Write tests immediately after implementing each component
+3. **Validation**: Run coverage analysis to ensure 80%+ coverage before moving to next feature
+4. **Integration**: Test integration points as they are developed, not at the end
+5. **Quality Gates**: No code is considered "done" without corresponding tests
 

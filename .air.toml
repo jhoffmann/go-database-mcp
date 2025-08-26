@@ -5,7 +5,7 @@ tmp_dir = "build"
 [build]
 args_bin = []
 bin = "./build/go-database-mcp"
-cmd = "go build -o ./build/mcp-database-server ./cmd/server"
+cmd = "go build -o ./build/go-database-mcp ./cmd/server"
 delay = 1000
 exclude_dir = ["assets", "bin", "vendor", "testdata"]
 exclude_file = []
