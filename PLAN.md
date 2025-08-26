@@ -95,7 +95,7 @@ type DatabaseConfig struct {
 ### Phase 1: Foundation with Testing Infrastructure (Week 1)
 
 1. **Project Setup**
-   - Initialize Go module with Go 1.25.0
+   - Initialize Go module with Go 1.24.6
    - Set up project structure
    - Add MCP Go SDK dependency
    - **Set up testing framework and coverage tools**
@@ -269,4 +269,3 @@ CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -ldflags="-w -s" -o bin/mcp-dat
 - ✅ MCP client integration guide with working code samples
 - ✅ Configuration guide with validated sample configurations
 - ✅ Security best practices documentation
-

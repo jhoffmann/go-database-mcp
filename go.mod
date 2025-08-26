@@ -1,6 +1,6 @@
 module github.com/jhoffmann/go-database-mcp
 
-go 1.25.0
+go 1.24.6
 
 require (
 	github.com/go-sql-driver/mysql v1.9.3
