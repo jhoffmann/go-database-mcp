@@ -43,4 +43,4 @@ opencode.json
 *.log
 
 # Build directories
-dist/
+build/

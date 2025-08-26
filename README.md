@@ -16,7 +16,7 @@ A Model Context Protocol (MCP) server that provides secure database connectivity
 ## Installation
 
 ```bash
-go install github.com/jhoffmann/go-database-mcp/cmd/server@latest
+go install github.com/jhoffmann/go-database-mcp@latest
 ```
 
 ## Configuration
@@ -80,7 +80,7 @@ Add the MCP server to your OpenCode configuration:
   "mcp": {
     "database-mcp": {
       "type": "local",
-      "command": ["go-database-mcp"],
+      "command": ["database-mcp"],
       "enabled": true,
       "environment": {
         "DB_TYPE": "postgres",
@@ -107,7 +107,7 @@ Add the MCP server to your Claude Code configuration, either specifying environm
 {
   "mcpServers": {
     "database": {
-      "command": "go-database-mcp",
+      "command": "database-mcp",
       "args": [],
       "env": {
         "DB_TYPE": "postgres",
@@ -134,7 +134,7 @@ Configure the MCP server in your Cursor settings:
 ```json
 {
   "name": "Database Server",
-  "command": "go-database-mcp",
+  "command": "database-mcp",
   "args": [],
   "env": {
     "DB_TYPE": "mysql",
@@ -151,7 +151,7 @@ Configure the MCP server in your Cursor settings:
 
 For other MCP-compatible tools, configure the server with:
 
-- **Command**: `go-database-mcp` (assuming it's in your PATH after `go install`)
+- **Command**: `database-mcp` (assuming it's in your PATH after `go install`)
 - **Transport**: stdio
 - **Environment**: Set your database configuration variables
 
