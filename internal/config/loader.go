@@ -8,6 +8,10 @@ import (
 	"github.com/kelseyhightower/envconfig"
 )
 
+// Load reads configuration from environment variables and .env file.
+// It first loads variables from .env file if present, then processes environment variables
+// which take precedence over .env file values. The configuration is validated before returning.
+// Returns an error if loading or validation fails.
 func Load() (*Config, error) {
 	if _, err := os.Stat(".env"); err == nil {
 		if err := godotenv.Load(); err != nil {
@@ -40,6 +44,10 @@ func Load() (*Config, error) {
 	return cfg, nil
 }
 
+// Validate checks the configuration for required fields and valid values.
+// It ensures database type is supported, connection parameters are valid,
+// and SSL modes are appropriate for the selected database type.
+// Returns an error describing any validation failures.
 func Validate(cfg *Config) error {
 	if cfg.Database.Type != "mysql" && cfg.Database.Type != "postgres" {
 		return fmt.Errorf("database type must be 'mysql' or 'postgres', got '%s'", cfg.Database.Type)

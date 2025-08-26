@@ -1,3 +1,6 @@
+// Package main provides the entry point for the Database MCP Server.
+// It implements a Model Context Protocol server that provides database connectivity
+// for MySQL and PostgreSQL databases via stdio transport.
 package main
 
 import (
@@ -11,11 +14,16 @@ import (
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 )
 
+// Server represents the Database MCP Server instance.
+// It wraps the MCP server implementation with database-specific configuration
+// and provides lifecycle management.
 type Server struct {
-	config *config.Config
-	server *mcp.Server
+	config *config.Config // Database configuration
+	server *mcp.Server    // MCP server instance
 }
 
+// NewServer creates a new Database MCP Server instance with the given configuration.
+// It initializes the MCP server implementation with database-specific tools and handlers.
 func NewServer(cfg *config.Config) *Server {
 	impl := &mcp.Implementation{
 		Name:    "database-mcp",
@@ -30,6 +38,9 @@ func NewServer(cfg *config.Config) *Server {
 	}
 }
 
+// Start begins serving MCP requests using stdio transport.
+// It establishes database connections and starts the MCP server to handle client requests.
+// The server will run until the context is cancelled or an error occurs.
 func (s *Server) Start(ctx context.Context) error {
 	transport := &mcp.StdioTransport{}
 
@@ -40,6 +51,9 @@ func (s *Server) Start(ctx context.Context) error {
 	return s.server.Run(ctx, transport)
 }
 
+// main is the entry point for the Database MCP Server.
+// It loads configuration, initializes the server, and handles graceful shutdown
+// on SIGINT and SIGTERM signals.
 func main() {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 	log.Println("Starting Database MCP Server...")
