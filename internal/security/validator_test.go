@@ -169,7 +169,7 @@ func TestQueryValidator_ValidateDatabaseAccess(t *testing.T) {
 		{
 			name:             "complex query with table.column references",
 			allowedDatabases: []string{},
-			query:            "SELECT ls010_proposals.id, ls010_proposals.name, ls010_proposals_cstm.proposal_id_c FROM ls010_proposals INNER JOIN ls010_proposals_cstm ON ls010_proposals.id = ls010_proposals_cstm.id_c",
+			query:            "SELECT products.id, products.name, product_details.sku_code FROM products INNER JOIN product_details ON products.id = product_details.product_id",
 			wantErr:          false,
 		},
 		{
