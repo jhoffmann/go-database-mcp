@@ -68,7 +68,7 @@ DB_PASSWORD=mypassword
 
 ## Integration with Agentic Editors
 
-### OpenCode
+### OpenCode (https://opencode.ai/)
 
 Add the MCP server to your OpenCode configuration:
 
@@ -95,9 +95,9 @@ Add the MCP server to your OpenCode configuration:
 }
 ```
 
-2. Restart Claude Code to load the MCP server
+2. Restart OpenCode to load the MCP server
 
-### Claude Code
+### Claude Code (https://www.anthropic.com/claude-code)
 
 Add the MCP server to your Claude Code configuration, either specifying environment variables directly or using a `.env` file.
 
@@ -124,7 +124,7 @@ Add the MCP server to your Claude Code configuration, either specifying environm
 
 2. Restart Claude Code to load the MCP server
 
-### Cursor IDE
+### Cursor IDE (https://cursor.com)
 
 Configure the MCP server in your Cursor settings:
 
