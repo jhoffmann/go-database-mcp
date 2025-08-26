@@ -21,7 +21,10 @@ func TestNewServer(t *testing.T) {
 		},
 	}
 
-	server := NewServer(cfg)
+	server, err := NewServer(cfg)
+	if err != nil {
+		t.Fatalf("NewServer() failed: %v", err)
+	}
 
 	if server == nil {
 		t.Fatal("NewServer() returned nil")
@@ -47,7 +50,10 @@ func TestServer_StructFields(t *testing.T) {
 		},
 	}
 
-	server := NewServer(cfg)
+	server, err := NewServer(cfg)
+	if err != nil {
+		t.Fatalf("NewServer() failed: %v", err)
+	}
 
 	// Test that config is properly stored
 	if server.config.Database.Type != cfg.Database.Type {
@@ -83,7 +89,10 @@ func TestServer_Start_Method_Exists(t *testing.T) {
 		},
 	}
 
-	server := NewServer(cfg)
+	server, err := NewServer(cfg)
+	if err != nil {
+		t.Fatalf("NewServer() failed: %v", err)
+	}
 
 	// Test that Start method exists by checking the server is properly initialized
 	// We don't actually call it because it uses stdio transport which conflicts with test output
@@ -126,7 +135,10 @@ func TestNewServer_DifferentDatabaseTypes(t *testing.T) {
 				},
 			}
 
-			server := NewServer(cfg)
+			server, err := NewServer(cfg)
+			if err != nil {
+				t.Fatalf("NewServer() failed: %v", err)
+			}
 
 			if server == nil {
 				t.Fatal("NewServer() returned nil")
@@ -157,7 +169,10 @@ func TestNewServer_MCPImplementation(t *testing.T) {
 		},
 	}
 
-	server := NewServer(cfg)
+	server, err := NewServer(cfg)
+	if err != nil {
+		t.Fatalf("NewServer() failed: %v", err)
+	}
 
 	if server.server == nil {
 		t.Fatal("MCP server was not initialized")
@@ -182,7 +197,10 @@ func TestNewServer_ConnectionPoolSettings(t *testing.T) {
 		},
 	}
 
-	server := NewServer(cfg)
+	server, err := NewServer(cfg)
+	if err != nil {
+		t.Fatalf("NewServer() failed: %v", err)
+	}
 
 	if server.config.Database.MaxConns != 25 {
 		t.Errorf("Expected MaxConns = 25, got %d", server.config.Database.MaxConns)

@@ -2,6 +2,7 @@ package config
 
 import (
 	"os"
+	"strings"
 	"testing"
 )
 
@@ -339,4 +340,150 @@ func containsAtPosition(s, substr string) bool {
 		}
 	}
 	return false
+}
+
+// Additional security-focused tests
+
+func TestLoad_CredentialSecurity(t *testing.T) {
+	// Save original environment
+	originalEnv := os.Environ()
+	defer func() {
+		// Restore environment
+		os.Clearenv()
+		for _, env := range originalEnv {
+			parts := strings.SplitN(env, "=", 2)
+			if len(parts) == 2 {
+				os.Setenv(parts[0], parts[1])
+			}
+		}
+	}()
+
+	tests := []struct {
+		name    string
+		setup   func()
+		wantErr bool
+		errMsg  string
+	}{
+		{
+			name: "allowed databases configuration",
+			setup: func() {
+				os.Clearenv()
+				os.Setenv("DB_TYPE", "postgres")
+				os.Setenv("DB_HOST", "localhost")
+				os.Setenv("DB_PORT", "5432")
+				os.Setenv("DB_NAME", "testdb")
+				os.Setenv("DB_USER", "testuser")
+				os.Setenv("DB_PASSWORD", "secretpass")
+				os.Setenv("DB_ALLOWED_NAMES", "testdb,devdb,staging")
+			},
+			wantErr: false,
+		},
+		{
+			name: "primary database always allowed even if not in list",
+			setup: func() {
+				os.Clearenv()
+				os.Setenv("DB_TYPE", "postgres")
+				os.Setenv("DB_HOST", "localhost")
+				os.Setenv("DB_PORT", "5432")
+				os.Setenv("DB_NAME", "proddb")
+				os.Setenv("DB_USER", "testuser")
+				os.Setenv("DB_PASSWORD", "secretpass")
+				os.Setenv("DB_ALLOWED_NAMES", "testdb,devdb,staging")
+			},
+			wantErr: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tt.setup()
+
+			cfg, err := Load()
+			if tt.wantErr {
+				if err == nil {
+					t.Errorf("Load() expected error but got none")
+				} else if tt.errMsg != "" && !strings.Contains(err.Error(), tt.errMsg) {
+					t.Errorf("Load() error = %v, want to contain %v", err, tt.errMsg)
+				}
+			} else {
+				if err != nil {
+					t.Errorf("Load() error = %v, want nil", err)
+				} else {
+					// Verify allowed databases parsed correctly
+					if os.Getenv("DB_ALLOWED_NAMES") != "" {
+						expectedCount := len(strings.Split(os.Getenv("DB_ALLOWED_NAMES"), ","))
+						if len(cfg.Database.AllowedDatabases) != expectedCount {
+							t.Errorf("Load() AllowedDatabases count = %d, want %d",
+								len(cfg.Database.AllowedDatabases), expectedCount)
+						}
+					}
+				}
+			}
+		})
+	}
+}
+
+func TestDatabaseConfig_IsDatabaseAllowed(t *testing.T) {
+	tests := []struct {
+		name             string
+		allowedDatabases []string
+		testDatabase     string
+		want             bool
+	}{
+		{
+			name:             "empty allowed list means only primary database allowed",
+			allowedDatabases: []string{},
+			testDatabase:     "anydb",
+			want:             false,
+		},
+		{
+			name:             "primary database always allowed",
+			allowedDatabases: []string{},
+			testDatabase:     "testdb",
+			want:             true,
+		},
+		{
+			name:             "database in allowed list",
+			allowedDatabases: []string{"testdb", "devdb"},
+			testDatabase:     "testdb",
+			want:             true,
+		},
+		{
+			name:             "database not in allowed list",
+			allowedDatabases: []string{"testdb", "devdb"},
+			testDatabase:     "proddb",
+			want:             false,
+		},
+		{
+			name:             "case sensitive matching - allowed database",
+			allowedDatabases: []string{"TestDB"},
+			testDatabase:     "TestDB",
+			want:             true,
+		},
+		{
+			name:             "case sensitive matching - different case not allowed",
+			allowedDatabases: []string{"TestDB"},
+			testDatabase:     "TESTDB",
+			want:             false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			primaryDB := "testdb" // Default primary database
+
+			// Use different primary database for case-sensitive tests
+			if strings.Contains(tt.name, "case sensitive") {
+				primaryDB = "primarydb"
+			}
+
+			config := &DatabaseConfig{
+				Database:         primaryDB,
+				AllowedDatabases: tt.allowedDatabases,
+			}
+			if got := config.IsDatabaseAllowed(tt.testDatabase); got != tt.want {
+				t.Errorf("IsDatabaseAllowed() = %v, want %v", got, tt.want)
+			}
+		})
+	}
 }

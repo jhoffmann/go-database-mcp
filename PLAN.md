@@ -1,11 +1,13 @@
 # Database MCP Server Implementation Plan
 
 ## Project Overview
-A Go 1.25.0 database MCP server supporting MySQL and PostgreSQL with environment/file configuration. Uses stdio transport for Model Context Protocol communication.
+
+A database MCP server written in Go, supporting MySQL and PostgreSQL with environment/file configuration. Uses stdio transport for Model Context Protocol communication.
 
 ## Architecture Design
 
 ### 1. Project Structure
+
 ```
 go-database-mcp/
 ├── cmd/
@@ -24,20 +26,20 @@ go-database-mcp/
 │       ├── query.go         # SQL query tools
 │       ├── schema.go        # Schema inspection tools
 │       └── admin.go         # Database admin tools
-├── pkg/
-│   └── types/               # Shared types and schemas
 ├── go.mod
 ├── go.sum
 └── README.md
 ```
 
 ### 2. Configuration System
-- **Environment Variables**: Support standard DB_* prefixed variables
+
+- **Environment Variables**: Support standard DB\_\* prefixed variables
 - **.env File Support**: Load from `.env` file in working directory
 - **Hierarchical Config**: Environment variables override .env file values
 - **Validation**: Comprehensive config validation with helpful error messages
 
 **Key Configuration Fields:**
+
 ```go
 type Config struct {
     Database DatabaseConfig `json:"database"`
@@ -57,12 +59,14 @@ type DatabaseConfig struct {
 ```
 
 ### 3. Database Support Architecture
+
 - **Unified Interface**: Common database interface for both MySQL and PostgreSQL
 - **Driver Abstraction**: Separate implementations for each database type
 - **Connection Pooling**: Built-in connection pool management
 - **Query Builder**: Safe SQL query construction with parameter binding
 
 ### 4. Security Framework
+
 - **Database SSL/TLS**: Support for encrypted database connections
 - **Credential Security**: Environment-based credential loading, no credential logging
 - **SQL Safety**: Parameter binding to prevent SQL injection
@@ -71,6 +75,7 @@ type DatabaseConfig struct {
 ### 5. MCP Tools Implementation
 
 **Core Tools:**
+
 1. **query** - Execute SQL queries with result formatting
 2. **describe_table** - Get table schema and metadata
 3. **list_tables** - List all tables in database
@@ -79,6 +84,7 @@ type DatabaseConfig struct {
 6. **get_table_data** - Fetch table data with pagination
 
 ### 6. Static Binary Distribution
+
 - **Static Compilation**: CGO disabled for portable binaries
 - **Cross-platform Support**: Linux, macOS, Windows builds
 - **Minimal Dependencies**: Self-contained executable with no external runtime requirements
@@ -87,6 +93,7 @@ type DatabaseConfig struct {
 ## Implementation Roadmap (Shift-Left Testing Approach)
 
 ### Phase 1: Foundation with Testing Infrastructure (Week 1)
+
 1. **Project Setup**
    - Initialize Go module with Go 1.25.0
    - Set up project structure
@@ -107,12 +114,14 @@ type DatabaseConfig struct {
    - **Write unit tests for server initialization and configuration handling**
 
 **Phase 1 Testing Deliverables:**
-   - Complete unit test suite for configuration system (90%+ coverage)
-   - Mock framework setup for external dependencies
-   - CI/CD pipeline with automated testing
-   - Test coverage reporting and quality gates
+
+- Complete unit test suite for configuration system (90%+ coverage)
+- Mock framework setup for external dependencies
+- CI/CD pipeline with automated testing
+- Test coverage reporting and quality gates
 
 ### Phase 2: Database Integration with Comprehensive Testing (Week 2)
+
 1. **Database Abstraction Layer**
    - Define database interface with testability in mind
    - Implement connection management with dependency injection
@@ -126,18 +135,20 @@ type DatabaseConfig struct {
    - **Test DSN building, connection pooling, and error handling**
 
 3. **PostgreSQL Support**
-   - Add `lib/pq` dependency  
+   - Add `lib/pq` dependency
    - Implement PostgreSQL-specific connection with SSL support
    - **Create comprehensive unit tests for PostgreSQL implementation**
    - **Test connection strings, SSL modes, and error scenarios**
 
 **Phase 2 Testing Deliverables:**
-   - Unit tests for database interface implementations (80%+ coverage)
-   - Mock database implementations for testing business logic
-   - Connection manager tests with various configurations
-   - Integration test framework setup (using test containers)
+
+- Unit tests for database interface implementations (80%+ coverage)
+- Mock database implementations for testing business logic
+- Connection manager tests with various configurations
+- Integration test framework setup (using test containers)
 
 ### Phase 3: Core MCP Tools with Test-First Development (Week 3)
+
 1. **Basic Query Tools**
    - **Write tests first for expected query tool behavior**
    - Implement `query` tool with parameter binding to pass tests
@@ -157,12 +168,14 @@ type DatabaseConfig struct {
    - Add query validation and sanitization with security-focused tests
 
 **Phase 3 Testing Deliverables:**
-   - Test-driven development for all MCP tools
-   - Integration tests with real database instances
-   - Performance tests for pagination and large result sets
-   - Security tests for SQL injection prevention
+
+- Test-driven development for all MCP tools
+- Integration tests with real database instances
+- Performance tests for pagination and large result sets
+- Security tests for SQL injection prevention
 
 ### Phase 4: Security Hardening with Security Testing (Week 4)
+
 1. **SQL Safety**
    - **Write security tests before implementing safety measures**
    - Parameter binding implementation with injection attack tests
@@ -181,54 +194,14 @@ type DatabaseConfig struct {
    - Safe error messaging with information disclosure tests
 
 **Phase 4 Testing Deliverables:**
-   - Security test suite with penetration testing scenarios
-   - Performance tests for connection pooling and query limits
-   - Credential security audit with automated leak detection
-   - Error handling tests ensuring no sensitive data exposure
 
-### Phase 5: Static Binary Builds with Build Testing (Week 5)
-1. **Build System**
-   - Configure static compilation with CGO_ENABLED=0
-   - Set up cross-platform build targets with validation tests
-   - Optimize binary size with build flags and size regression tests
-   - **Test builds on multiple platforms and architectures**
-
-2. **Distribution**
-   - Create release automation with checksum validation
-   - Generate checksums for binaries with integrity tests
-   - Package binaries for different platforms with deployment tests
-   - **Automated testing of deployment packages**
-
-**Phase 5 Testing Deliverables:**
-   - Automated build verification on multiple platforms
-   - Binary integrity and security scanning
-   - Deployment and installation testing
-   - Performance benchmarking of static builds
-
-### Phase 6: Final Testing and Documentation (Week 6)
-1. **Final Testing Suite**
-   - End-to-end integration tests with real database scenarios
-   - Load testing and performance benchmarking
-   - Container-based test environment with CI/CD integration
-   - **Final coverage analysis ensuring 80%+ across all components**
-
-2. **Documentation with Examples**
-   - MCP tool documentation with tested examples
-   - Configuration guide with validated sample configurations
-   - MCP client integration guide with working examples
-
-3. **Quality Assurance**
-   - Final security audit and penetration testing
-   - Performance profiling and optimization validation
-   - User acceptance testing with real-world scenarios
-
-**Phase 6 Testing Deliverables:**
-   - Complete test suite with 80%+ coverage across all packages
-   - Performance benchmarks and load testing results
-   - Security audit report with all issues resolved
-   - Documentation with tested and verified examples
+- Security test suite with penetration testing scenarios
+- Performance tests for connection pooling and query limits
+- Credential security audit with automated leak detection
+- Error handling tests ensuring no sensitive data exposure
 
 ## Key Dependencies
+
 - `github.com/modelcontextprotocol/go-sdk/mcp` - MCP SDK
 - `github.com/go-sql-driver/mysql` - MySQL driver
 - `github.com/lib/pq` - PostgreSQL driver
@@ -238,6 +211,7 @@ type DatabaseConfig struct {
 ## Build Configuration
 
 ### Environment Variables
+
 ```bash
 # Database Configuration
 DB_TYPE=postgres          # or mysql
@@ -250,6 +224,7 @@ DB_SSL_MODE=prefer       # SSL mode for database connection
 ```
 
 ### Static Binary Build Commands
+
 ```bash
 # Build for current platform
 CGO_ENABLED=0 go build -ldflags="-w -s" -o bin/mcp-database-server ./cmd/server
@@ -267,8 +242,9 @@ CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -ldflags="-w -s" -o bin/mcp-dat
 ## Success Criteria with Quality Gates
 
 ### Functional Requirements
+
 - ✅ Supports both MySQL and PostgreSQL with SSL connections
-- ✅ Loads configuration from environment variables and .env files  
+- ✅ Loads configuration from environment variables and .env files
 - ✅ Complete set of database query and schema tools
 - ✅ SQL injection prevention through parameter binding
 - ✅ Comprehensive error handling and logging
@@ -277,6 +253,7 @@ CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -ldflags="-w -s" -o bin/mcp-dat
 - ✅ Stdio-based MCP transport for client integration
 
 ### Quality Requirements (Shift-Left Testing)
+
 - ✅ **80%+ test coverage across all packages** (corporate quality gate requirement)
 - ✅ **Unit tests written immediately after each implementation** (not deferred)
 - ✅ **Integration tests for all database operations**
@@ -287,7 +264,9 @@ CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -ldflags="-w -s" -o bin/mcp-dat
 - ✅ **Testable architecture with dependency injection and mocking support**
 
 ### Documentation and Examples
+
 - ✅ Clear documentation with tested and verified examples
 - ✅ MCP client integration guide with working code samples
 - ✅ Configuration guide with validated sample configurations
 - ✅ Security best practices documentation
+

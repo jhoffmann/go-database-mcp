@@ -1,11 +1,11 @@
 root = "."
-testdata_dir = "build"
-tmp_dir = "build"
+testdata_dir = "dist"
+tmp_dir = "dist"
 
 [build]
 args_bin = []
-bin = "./build/go-database-mcp"
-cmd = "go build -o ./build/go-database-mcp ./cmd/server"
+bin = "./dist/mcp-database-server"
+cmd = "mise run build-linux-static"
 delay = 1000
 exclude_dir = ["assets", "bin", "vendor", "testdata"]
 exclude_file = []

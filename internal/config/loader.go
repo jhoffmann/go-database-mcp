@@ -21,15 +21,16 @@ func Load() (*Config, error) {
 
 	cfg := &Config{
 		Database: DatabaseConfig{
-			Type:         "postgres",
-			Host:         "localhost",
-			Port:         5432,
-			Database:     "",
-			Username:     "",
-			Password:     "",
-			MaxConns:     10,
-			MaxIdleConns: 5,
-			SSLMode:      "prefer",
+			Type:             "postgres",
+			Host:             "localhost",
+			Port:             5432,
+			Database:         "",
+			AllowedDatabases: []string{}, // Empty means only primary database allowed
+			Username:         "",
+			Password:         "",
+			MaxConns:         10,
+			MaxIdleConns:     5,
+			SSLMode:          "prefer",
 		},
 	}
 
@@ -94,6 +95,8 @@ func Validate(cfg *Config) error {
 			return fmt.Errorf("invalid SSL mode for postgres: %s", cfg.Database.SSLMode)
 		}
 	}
+
+	// Note: Primary database is always allowed by design, no validation needed
 
 	return nil
 }

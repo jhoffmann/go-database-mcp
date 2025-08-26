@@ -22,7 +22,7 @@ DB_PASSWORD=mypassword
 
 ```bash
 # Build the server (static binary)
-CGO_ENABLED=0 go build -ldflags="-w -s" -o bin/mcp-database-server ./cmd/server
+CGO_ENABLED=0 go build -ldflags="-w -s" -o dist/mcp-database-server ./cmd/server
 
 # Run with environment variables
 export DB_TYPE=postgres

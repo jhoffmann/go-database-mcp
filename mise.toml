@@ -2,7 +2,7 @@
 go = "1.25.0"
 
 [vars]
-project = "go-database-mcp"
+project = "mcp-database-server"
 
 [env]
 CGO_ENABLED = "0"
@@ -34,16 +34,16 @@ description = "Build the project binaries"
 sources = ['go.mod', '*.go', '**/*.go']
 
 [tasks.build-linux]
-run = "go build -o dist/{{vars.project}} ./cmd/web"
+run = "go build -o dist/{{vars.project}} ./cmd/server"
 outputs = ["dist/{{vars.project}}"]
 
 [tasks.build-linux-static]
-run = "go build -a -ldflags '-extldflags \"-static\"' -o dist/{{vars.project}} ./cmd/web"
+run = "go build -a -ldflags '-extldflags \"-static\"' -o dist/{{vars.project}} ./cmd/server"
 outputs = ["dist/{{vars.project}}"]
 
 [tasks.build-windows]
 env = { GOARCH = "amd64", GOOS = "windows" }
-run = "go build -o dist/{{vars.project}}.exe ./cmd/web"
+run = "go build -o dist/{{vars.project}}.exe ./cmd/server"
 outputs = ["dist/{{vars.project}}.exe"]
 
 [tasks.build-container]
@@ -76,4 +76,4 @@ alias = "d"
 
 [tasks.sloc]
 description = "Count lines of code"
-run = "tokei"
+run = "tokei -e '*_test.go'"
