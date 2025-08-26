@@ -1,0 +1,79 @@
+[tools]
+go = "1.25.0"
+
+[vars]
+project = "go-database-mcp"
+
+[env]
+CGO_ENABLED = "0"
+GOOS = "linux"
+
+[tasks.run]
+description = "Run the application"
+run = "go run main.go"
+
+[tasks.test]
+description = "Run tests"
+run = "go test -tags=coverage ./... -cover"
+
+[tasks.clean]
+description = "Clean build and test artifacts"
+run = ["rm -rf bin/", "rm -f *.out *.html *.sql", "go clean -testcache"]
+
+[tasks.fmt]
+description = "Format code"
+run = "go fmt ./..."
+
+[tasks.vet]
+description = "Vet code"
+run = "go vet ./..."
+
+[tasks.build]
+depends = ["build-linux", "build-windows"]
+description = "Build the project binaries"
+sources = ['go.mod', '*.go', '**/*.go']
+
+[tasks.build-linux]
+run = "go build -o dist/{{vars.project}} ./cmd/web"
+outputs = ["dist/{{vars.project}}"]
+
+[tasks.build-linux-static]
+run = "go build -a -ldflags '-extldflags \"-static\"' -o dist/{{vars.project}} ./cmd/web"
+outputs = ["dist/{{vars.project}}"]
+
+[tasks.build-windows]
+env = { GOARCH = "amd64", GOOS = "windows" }
+run = "go build -o dist/{{vars.project}}.exe ./cmd/web"
+outputs = ["dist/{{vars.project}}.exe"]
+
+[tasks.build-container]
+quiet = true
+run = "podman build -t {{vars.project}}:latest ."
+description = "Build the container image"
+alias = "bc"
+
+[tasks.run-container]
+run = "podman run --rm -p 8080:8080 lets-go"
+description = "Run the container image"
+alias = "rc"
+
+[tasks.deps]
+description = "Install dependencies"
+run = ["go mod download", "go mod tidy"]
+
+[tasks.cov]
+description = "Run tests with coverage report"
+run = [
+  "go test ./... -coverprofile=coverage.out",
+  "go tool cover -html=coverage.out -o coverage.html",
+  "go tool cover -func=coverage.out",
+]
+
+[tasks.dev]
+description = "Standard development workflow"
+depends = ["deps", "fmt", "vet", "test"]
+alias = "d"
+
+[tasks.sloc]
+description = "Count lines of code"
+run = "tokei"
