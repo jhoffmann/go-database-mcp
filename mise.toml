@@ -2,7 +2,7 @@
 go = "1.25.0"
 
 [vars]
-project = "mcp-database-server"
+project = "go-database-mcp"
 
 [env]
 CGO_ENABLED = "0"

@@ -30,7 +30,7 @@ type Server struct {
 // It initializes the MCP server implementation with database-specific tools and handlers.
 func NewServer(cfg *config.Config) (*Server, error) {
 	impl := &mcp.Implementation{
-		Name:    "database-mcp",
+		Name:    "database",
 		Version: "1.0.0",
 	}
 

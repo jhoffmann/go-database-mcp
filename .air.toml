@@ -4,7 +4,7 @@ tmp_dir = "dist"
 
 [build]
 args_bin = []
-bin = "./dist/mcp-database-server"
+bin = "./dist/go-database-mcp"
 cmd = "mise run build-linux-static"
 delay = 1000
 exclude_dir = ["assets", "bin", "vendor", "testdata"]
