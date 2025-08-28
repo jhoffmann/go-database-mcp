@@ -21,31 +21,31 @@ go install github.com/jhoffmann/go-database-mcp@latest
 
 ## Configuration
 
-### PostgreSQL Example
+Configure the database connection using a connection string.
 
 Create a `.env` file in your project directory:
 
+#### PostgreSQL Examples
+
 ```bash
-DB_TYPE=postgres
-DB_HOST=localhost
-DB_PORT=5432
-DB_NAME=myapp
-DB_USER=myuser
-DB_PASSWORD=mypassword
+# Basic connection
+DB_CONNECTION_STRING=postgresql://myuser:mypassword@localhost:5432/myapp
+
+# With SSL requirements
+DB_CONNECTION_STRING=postgresql://myuser:mypassword@localhost:5432/myapp?sslmode=require
 
 # Optional: Allow access to additional databases
 # DB_ALLOWED_NAMES=testdb,devdb,staging
 ```
 
-### MySQL Example
+#### MySQL Examples
 
 ```bash
-DB_TYPE=mysql
-DB_HOST=localhost
-DB_PORT=3306
-DB_NAME=myapp
-DB_USER=myuser
-DB_PASSWORD=mypassword
+# Basic connection
+DB_CONNECTION_STRING=mysql://myuser:mypassword@localhost:3306/myapp
+
+# Remote database with SSL
+DB_CONNECTION_STRING=mysql://myuser:mypassword@db.example.com:3306/myapp?sslmode=require
 
 # Optional: Allow access to additional databases
 # DB_ALLOWED_NAMES=testdb,devdb,staging
@@ -53,18 +53,13 @@ DB_PASSWORD=mypassword
 
 ### Environment Variables
 
-| Variable            | Description                                          | Required | Default |
-| ------------------- | ---------------------------------------------------- | -------- | ------- |
-| `DB_TYPE`           | Database type: `mysql` or `postgres`                 | Yes      | -       |
-| `DB_HOST`           | Database server hostname                             | Yes      | -       |
-| `DB_PORT`           | Database server port                                 | Yes      | -       |
-| `DB_NAME`           | Primary database name                                | Yes      | -       |
-| `DB_USER`           | Database username                                    | Yes      | -       |
-| `DB_PASSWORD`       | Database password                                    | Yes      | -       |
-| `DB_SSL_MODE`       | SSL/TLS mode (`none`, `prefer`, `require`)           | No       | `none`  |
-| `DB_MAX_CONNS`      | Maximum open connections                             | No       | 10      |
-| `DB_MAX_IDLE_CONNS` | Maximum idle connections                             | No       | 5       |
-| `DB_ALLOWED_NAMES`  | Comma-separated list of additional allowed databases | No       | -       |
+| Variable               | Description                                              | Required | Default  | Notes                                         |
+| ---------------------- | -------------------------------------------------------- | -------- | -------- | --------------------------------------------- |
+| `DB_CONNECTION_STRING` | Full database connection URL (postgresql:// or mysql://) | Yes      | -        | Primary configuration method                  |
+| `DB_SSL_MODE`          | SSL/TLS mode (`none`, `prefer`, `require`)               | No       | `prefer` | Can be set in connection string or separately |
+| `DB_MAX_CONNS`         | Maximum open connections                                 | No       | 10       | Connection pool setting                       |
+| `DB_MAX_IDLE_CONNS`    | Maximum idle connections                                 | No       | 5        | Connection pool setting                       |
+| `DB_ALLOWED_NAMES`     | Comma-separated list of additional allowed databases     | No       | -        | Security setting                              |
 
 ## Integration with Agentic Editors
 
@@ -72,7 +67,7 @@ DB_PASSWORD=mypassword
 
 Add the MCP server to your OpenCode configuration:
 
-1. Create or edit `~/.config/opencode/opencode.json`. You can either add the environment variables directly or reference a `.env` file.
+1. Create or edit `~/.config/opencode/opencode.json`:
 
 ```json
 {
@@ -83,12 +78,7 @@ Add the MCP server to your OpenCode configuration:
       "command": ["go-database-mcp"],
       "enabled": true,
       "environment": {
-        "DB_TYPE": "postgres",
-        "DB_HOST": "localhost",
-        "DB_PORT": "5432",
-        "DB_NAME": "myapp",
-        "DB_USER": "myuser",
-        "DB_PASSWORD": "mypassword"
+        "DB_CONNECTION_STRING": "postgresql://myuser:mypassword@localhost:5432/myapp"
       }
     }
   }
@@ -99,7 +89,7 @@ Add the MCP server to your OpenCode configuration:
 
 ### Claude Code (https://www.anthropic.com/claude-code)
 
-Add the MCP server to your Claude Code configuration, either specifying environment variables directly or using a `.env` file.
+Add the MCP server to your Claude Code configuration:
 
 1. Create or edit `~/.config/claude-code/mcp_servers.json`:
 
@@ -110,12 +100,7 @@ Add the MCP server to your Claude Code configuration, either specifying environm
       "command": "go-database-mcp",
       "args": [],
       "env": {
-        "DB_TYPE": "postgres",
-        "DB_HOST": "localhost",
-        "DB_PORT": "5432",
-        "DB_NAME": "myapp",
-        "DB_USER": "myuser",
-        "DB_PASSWORD": "mypassword"
+        "DB_CONNECTION_STRING": "postgresql://myuser:mypassword@localhost:5432/myapp"
       }
     }
   }
@@ -137,12 +122,7 @@ Configure the MCP server in your Cursor settings:
   "command": "go-database-mcp",
   "args": [],
   "env": {
-    "DB_TYPE": "mysql",
-    "DB_HOST": "localhost",
-    "DB_PORT": "3306",
-    "DB_NAME": "ecommerce",
-    "DB_USER": "app_user",
-    "DB_PASSWORD": "secure_password"
+    "DB_CONNECTION_STRING": "mysql://app_user:secure_password@localhost:3306/ecommerce"
   }
 }
 ```
@@ -153,7 +133,7 @@ For other MCP-compatible tools, configure the server with:
 
 - **Command**: `go-database-mcp` (assuming it's in your PATH after `go install`)
 - **Transport**: stdio
-- **Environment**: Set your database configuration variables
+- **Environment**: Set `DB_CONNECTION_STRING` with your database connection URL
 
 ## Available MCP Tools
 

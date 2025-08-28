@@ -19,23 +19,37 @@ func Load() (*Config, error) {
 		}
 	}
 
+	// Create config with minimal defaults (only for values that don't come from connection strings)
 	cfg := &Config{
 		Database: DatabaseConfig{
-			Type:             "postgres",
-			Host:             "localhost",
-			Port:             5432,
-			Database:         "",
 			AllowedDatabases: []string{}, // Empty means only primary database allowed
-			Username:         "",
-			Password:         "",
 			MaxConns:         10,
 			MaxIdleConns:     5,
-			SSLMode:          "prefer",
 		},
 	}
 
+	// Load environment variables first to see what's explicitly set
 	if err := envconfig.Process("", &cfg.Database); err != nil {
 		return nil, fmt.Errorf("error processing database config: %w", err)
+	}
+
+	// Apply connection string values for any fields that weren't set by env vars
+	if err := cfg.Database.ApplyConnectionStringDefaults(); err != nil {
+		return nil, fmt.Errorf("error processing connection string: %w", err)
+	}
+
+	// Apply final defaults for any fields that are still empty
+	if cfg.Database.Type == "" {
+		cfg.Database.Type = "postgres"
+	}
+	if cfg.Database.Host == "" {
+		cfg.Database.Host = "localhost"
+	}
+	if cfg.Database.Port == 0 {
+		cfg.Database.Port = 5432
+	}
+	if cfg.Database.SSLMode == "" {
+		cfg.Database.SSLMode = "prefer"
 	}
 
 	if err := Validate(cfg); err != nil {
@@ -48,8 +62,27 @@ func Load() (*Config, error) {
 // Validate checks the configuration for required fields and valid values.
 // It ensures database type is supported, connection parameters are valid,
 // and SSL modes are appropriate for the selected database type.
+// Supports both connection string and individual parameter configuration.
 // Returns an error describing any validation failures.
 func Validate(cfg *Config) error {
+	// Check if we have either a connection string or individual parameters
+	if cfg.Database.ConnectionString == "" {
+		// Validate individual parameters approach
+		if cfg.Database.Type == "" {
+			return fmt.Errorf("database type is required (either via connection string or DB_TYPE)")
+		}
+		if cfg.Database.Host == "" {
+			return fmt.Errorf("database host is required (either via connection string or DB_HOST)")
+		}
+		if cfg.Database.Database == "" {
+			return fmt.Errorf("database name is required (either via connection string or DB_NAME)")
+		}
+		if cfg.Database.Username == "" {
+			return fmt.Errorf("database username is required (either via connection string or DB_USER)")
+		}
+	}
+
+	// Validate database type (should be populated by now)
 	if cfg.Database.Type != "mysql" && cfg.Database.Type != "postgres" {
 		return fmt.Errorf("database type must be 'mysql' or 'postgres', got '%s'", cfg.Database.Type)
 	}

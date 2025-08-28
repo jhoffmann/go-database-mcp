@@ -158,7 +158,7 @@ func TestDatabaseConfig_ValidateSSLMode(t *testing.T) {
 		expected    SSLMode
 		shouldError bool
 	}{
-		{"empty defaults to none", "", SSLModeNone, false},
+		{"empty defaults to prefer", "", SSLModePrefer, false},
 		{"valid none", "none", SSLModeNone, false},
 		{"valid prefer", "prefer", SSLModePrefer, false},
 		{"valid require", "require", SSLModeRequire, false},

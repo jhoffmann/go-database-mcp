@@ -230,15 +230,16 @@ func TestValidate_InvalidConfig(t *testing.T) {
 func TestLoad_WithEnvironmentVariables(t *testing.T) {
 	// Save original environment
 	originalEnv := map[string]string{
-		"DB_TYPE":           os.Getenv("DB_TYPE"),
-		"DB_HOST":           os.Getenv("DB_HOST"),
-		"DB_PORT":           os.Getenv("DB_PORT"),
-		"DB_NAME":           os.Getenv("DB_NAME"),
-		"DB_USER":           os.Getenv("DB_USER"),
-		"DB_PASSWORD":       os.Getenv("DB_PASSWORD"),
-		"DB_MAX_CONNS":      os.Getenv("DB_MAX_CONNS"),
-		"DB_MAX_IDLE_CONNS": os.Getenv("DB_MAX_IDLE_CONNS"),
-		"DB_SSL_MODE":       os.Getenv("DB_SSL_MODE"),
+		"DB_CONNECTION_STRING": os.Getenv("DB_CONNECTION_STRING"),
+		"DB_TYPE":              os.Getenv("DB_TYPE"),
+		"DB_HOST":              os.Getenv("DB_HOST"),
+		"DB_PORT":              os.Getenv("DB_PORT"),
+		"DB_NAME":              os.Getenv("DB_NAME"),
+		"DB_USER":              os.Getenv("DB_USER"),
+		"DB_PASSWORD":          os.Getenv("DB_PASSWORD"),
+		"DB_MAX_CONNS":         os.Getenv("DB_MAX_CONNS"),
+		"DB_MAX_IDLE_CONNS":    os.Getenv("DB_MAX_IDLE_CONNS"),
+		"DB_SSL_MODE":          os.Getenv("DB_SSL_MODE"),
 	}
 
 	// Clean up function
@@ -251,6 +252,9 @@ func TestLoad_WithEnvironmentVariables(t *testing.T) {
 			}
 		}
 	}()
+
+	// Clear DB_CONNECTION_STRING to ensure individual env vars take precedence
+	os.Unsetenv("DB_CONNECTION_STRING")
 
 	// Set test environment variables
 	testEnv := map[string]string{
@@ -305,14 +309,22 @@ func TestLoad_WithEnvironmentVariables(t *testing.T) {
 
 func TestLoad_ValidationError(t *testing.T) {
 	// Save original environment
-	originalType := os.Getenv("DB_TYPE")
+	originalEnv := map[string]string{
+		"DB_CONNECTION_STRING": os.Getenv("DB_CONNECTION_STRING"),
+		"DB_TYPE":              os.Getenv("DB_TYPE"),
+	}
 	defer func() {
-		if originalType == "" {
-			os.Unsetenv("DB_TYPE")
-		} else {
-			os.Setenv("DB_TYPE", originalType)
+		for key, value := range originalEnv {
+			if value == "" {
+				os.Unsetenv(key)
+			} else {
+				os.Setenv(key, value)
+			}
 		}
 	}()
+
+	// Clear DB_CONNECTION_STRING to ensure DB_TYPE takes precedence
+	os.Unsetenv("DB_CONNECTION_STRING")
 
 	// Set invalid database type
 	os.Setenv("DB_TYPE", "invalid")
@@ -420,6 +432,232 @@ func TestLoad_CredentialSecurity(t *testing.T) {
 				}
 			}
 		})
+	}
+}
+
+func TestLoad_WithConnectionString(t *testing.T) {
+	// Save original environment
+	originalEnv := os.Environ()
+	defer func() {
+		// Restore environment
+		os.Clearenv()
+		for _, env := range originalEnv {
+			parts := strings.SplitN(env, "=", 2)
+			if len(parts) == 2 {
+				os.Setenv(parts[0], parts[1])
+			}
+		}
+	}()
+
+	tests := []struct {
+		name           string
+		connectionStr  string
+		expectedConfig DatabaseConfig
+		wantErr        bool
+		errMsg         string
+	}{
+		{
+			name:          "PostgreSQL connection string",
+			connectionStr: "postgresql://user:pass@localhost:5432/mydb?sslmode=require",
+			expectedConfig: DatabaseConfig{
+				ConnectionString: "postgresql://user:pass@localhost:5432/mydb?sslmode=require",
+				Type:             "postgres",
+				Host:             "localhost",
+				Port:             5432,
+				Database:         "mydb",
+				Username:         "user",
+				Password:         "pass",
+				SSLMode:          "require",
+				MaxConns:         10,
+				MaxIdleConns:     5,
+			},
+		},
+		{
+			name:          "MySQL connection string",
+			connectionStr: "mysql://user:pass@dbhost:3306/mydb",
+			expectedConfig: DatabaseConfig{
+				ConnectionString: "mysql://user:pass@dbhost:3306/mydb",
+				Type:             "mysql",
+				Host:             "dbhost",
+				Port:             3306,
+				Database:         "mydb",
+				Username:         "user",
+				Password:         "pass",
+				SSLMode:          "prefer",
+				MaxConns:         10,
+				MaxIdleConns:     5,
+			},
+		},
+		{
+			name:          "Invalid connection string",
+			connectionStr: "invalid://connection/string",
+			wantErr:       true,
+			errMsg:        "error processing connection string",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			os.Clearenv()
+			os.Setenv("DB_CONNECTION_STRING", tt.connectionStr)
+
+			cfg, err := Load()
+			if tt.wantErr {
+				if err == nil {
+					t.Errorf("Load() expected error but got none")
+				} else if tt.errMsg != "" && !strings.Contains(err.Error(), tt.errMsg) {
+					t.Errorf("Load() error = %v, want to contain %v", err, tt.errMsg)
+				}
+				return
+			}
+
+			if err != nil {
+				t.Errorf("Load() error = %v, want nil", err)
+				return
+			}
+
+			// Verify the configuration
+			if cfg.Database.ConnectionString != tt.expectedConfig.ConnectionString {
+				t.Errorf("ConnectionString = %s, want %s", cfg.Database.ConnectionString, tt.expectedConfig.ConnectionString)
+			}
+			if cfg.Database.Type != tt.expectedConfig.Type {
+				t.Errorf("Type = %s, want %s", cfg.Database.Type, tt.expectedConfig.Type)
+			}
+			if cfg.Database.Host != tt.expectedConfig.Host {
+				t.Errorf("Host = %s, want %s", cfg.Database.Host, tt.expectedConfig.Host)
+			}
+			if cfg.Database.Port != tt.expectedConfig.Port {
+				t.Errorf("Port = %d, want %d", cfg.Database.Port, tt.expectedConfig.Port)
+			}
+			if cfg.Database.Database != tt.expectedConfig.Database {
+				t.Errorf("Database = %s, want %s", cfg.Database.Database, tt.expectedConfig.Database)
+			}
+			if cfg.Database.Username != tt.expectedConfig.Username {
+				t.Errorf("Username = %s, want %s", cfg.Database.Username, tt.expectedConfig.Username)
+			}
+			if cfg.Database.Password != tt.expectedConfig.Password {
+				t.Errorf("Password = %s, want %s", cfg.Database.Password, tt.expectedConfig.Password)
+			}
+			if cfg.Database.SSLMode != tt.expectedConfig.SSLMode {
+				t.Errorf("SSLMode = %s, want %s", cfg.Database.SSLMode, tt.expectedConfig.SSLMode)
+			}
+		})
+	}
+}
+
+func TestValidate_WithConnectionString(t *testing.T) {
+	tests := []struct {
+		name    string
+		config  *Config
+		wantErr bool
+		errMsg  string
+	}{
+		{
+			name: "Valid config with connection string",
+			config: &Config{
+				Database: DatabaseConfig{
+					ConnectionString: "postgresql://user:pass@localhost:5432/mydb",
+					Type:             "postgres",
+					Host:             "localhost",
+					Port:             5432,
+					Database:         "mydb",
+					Username:         "user",
+					Password:         "pass",
+					MaxConns:         10,
+					MaxIdleConns:     5,
+					SSLMode:          "prefer",
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Missing connection string and individual params",
+			config: &Config{
+				Database: DatabaseConfig{
+					ConnectionString: "",
+					Type:             "",
+					Host:             "",
+					Database:         "",
+					Username:         "",
+					MaxConns:         10,
+					MaxIdleConns:     5,
+				},
+			},
+			wantErr: true,
+			errMsg:  "database type is required (either via connection string or DB_TYPE)",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := Validate(tt.config)
+			if tt.wantErr {
+				if err == nil {
+					t.Errorf("Validate() expected error but got none")
+				} else if tt.errMsg != "" && !strings.Contains(err.Error(), tt.errMsg) {
+					t.Errorf("Validate() error = %v, want to contain %v", err, tt.errMsg)
+				}
+			} else {
+				if err != nil {
+					t.Errorf("Validate() error = %v, want nil", err)
+				}
+			}
+		})
+	}
+}
+
+func TestLoad_IndividualParametersPrecedence(t *testing.T) {
+	// Save original environment
+	originalEnv := map[string]string{
+		"DB_CONNECTION_STRING": os.Getenv("DB_CONNECTION_STRING"),
+		"DB_HOST":              os.Getenv("DB_HOST"),
+		"DB_PORT":              os.Getenv("DB_PORT"),
+		"DB_NAME":              os.Getenv("DB_NAME"),
+		"DB_USER":              os.Getenv("DB_USER"),
+	}
+
+	defer func() {
+		for key, value := range originalEnv {
+			if value == "" {
+				os.Unsetenv(key)
+			} else {
+				os.Setenv(key, value)
+			}
+		}
+	}()
+
+	// Set both connection string and individual parameters
+	os.Setenv("DB_CONNECTION_STRING", "postgresql://dbuser:dbpass@dbhost:5432/dbname")
+	os.Setenv("DB_HOST", "override-host") // Should override connection string
+	os.Setenv("DB_PORT", "9999")          // Should override connection string
+	os.Setenv("DB_NAME", "override-db")   // Should override connection string
+	os.Setenv("DB_USER", "override-user") // Should override connection string
+
+	cfg, err := Load()
+	if err != nil {
+		t.Fatalf("Load() error = %v, expected nil", err)
+	}
+
+	// Individual env vars should take precedence over connection string
+	if cfg.Database.Host != "override-host" {
+		t.Errorf("Expected Host = 'override-host', got %s", cfg.Database.Host)
+	}
+	if cfg.Database.Port != 9999 {
+		t.Errorf("Expected Port = 9999, got %d", cfg.Database.Port)
+	}
+	if cfg.Database.Database != "override-db" {
+		t.Errorf("Expected Database = 'override-db', got %s", cfg.Database.Database)
+	}
+	if cfg.Database.Username != "override-user" {
+		t.Errorf("Expected Username = 'override-user', got %s", cfg.Database.Username)
+	}
+
+	// Connection string should be used for values not overridden
+	if cfg.Database.Type != "postgres" {
+		t.Errorf("Expected Type = 'postgres', got %s", cfg.Database.Type)
+	}
+	if cfg.Database.Password != "dbpass" {
+		t.Errorf("Expected Password = 'dbpass', got %s", cfg.Database.Password)
 	}
 }
 

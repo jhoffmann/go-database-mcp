@@ -235,7 +235,7 @@ func TestPostgreSQL_buildDSN_DefaultSSL(t *testing.T) {
 		Database: "testdb",
 		Username: "user",
 		Password: "pass",
-		// SSLMode is empty, should default to "none"
+		// SSLMode is empty, should default to "prefer"
 	}
 
 	pg, err := NewPostgreSQL(cfg)
@@ -245,8 +245,8 @@ func TestPostgreSQL_buildDSN_DefaultSSL(t *testing.T) {
 
 	dsn := pg.buildDSN()
 
-	if !contains(dsn, "sslmode=disable") {
-		t.Errorf("DSN = %q, expected to contain 'sslmode=disable' for empty SSL mode", dsn)
+	if !contains(dsn, "sslmode=prefer") {
+		t.Errorf("DSN = %q, expected to contain 'sslmode=prefer' for empty SSL mode", dsn)
 	}
 }
 
