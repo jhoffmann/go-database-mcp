@@ -19,7 +19,7 @@ type DatabaseConfig struct {
 	Password         string   `json:"password" envconfig:"DB_PASSWORD"`               // Database password
 	MaxConns         int      `json:"max_conns" envconfig:"DB_MAX_CONNS"`             // Maximum number of open connections
 	MaxIdleConns     int      `json:"max_idle_conns" envconfig:"DB_MAX_IDLE_CONNS"`   // Maximum number of idle connections
-	SSLMode          string   `json:"ssl_mode" envconfig:"DB_SSL_MODE"`               // SSL/TLS mode for connection
+	SSLMode          string   `json:"ssl_mode" envconfig:"DB_SSL_MODE"`               // SSL/TLS mode: "none", "prefer", or "require"
 }
 
 // IsDatabaseAllowed checks if a database name is allowed to be accessed.
@@ -44,4 +44,14 @@ func (cfg *DatabaseConfig) IsDatabaseAllowed(databaseName string) bool {
 	}
 
 	return false
+}
+
+// ValidateSSLMode checks if the configured SSL mode is valid and returns
+// the parsed SSLMode. If no SSL mode is configured, it returns SSLModeNone as default.
+func (cfg *DatabaseConfig) ValidateSSLMode() (SSLMode, error) {
+	if cfg.SSLMode == "" {
+		return SSLModeNone, nil
+	}
+
+	return ParseSSLMode(cfg.SSLMode)
 }

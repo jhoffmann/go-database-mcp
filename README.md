@@ -53,18 +53,18 @@ DB_PASSWORD=mypassword
 
 ### Environment Variables
 
-| Variable            | Description                                                                                             | Required | Default  |
-| ------------------- | ------------------------------------------------------------------------------------------------------- | -------- | -------- |
-| `DB_TYPE`           | Database type: `mysql` or `postgres`                                                                    | Yes      | -        |
-| `DB_HOST`           | Database server hostname                                                                                | Yes      | -        |
-| `DB_PORT`           | Database server port                                                                                    | Yes      | -        |
-| `DB_NAME`           | Primary database name                                                                                   | Yes      | -        |
-| `DB_USER`           | Database username                                                                                       | Yes      | -        |
-| `DB_PASSWORD`       | Database password                                                                                       | Yes      | -        |
-| `DB_SSL_MODE`       | SSL/TLS mode (`disable`, `require`, `prefer` for PostgreSQL; `none`, `required`, `preferred` for MySQL) | No       | `prefer` |
-| `DB_MAX_CONNS`      | Maximum open connections                                                                                | No       | 10       |
-| `DB_MAX_IDLE_CONNS` | Maximum idle connections                                                                                | No       | 5        |
-| `DB_ALLOWED_NAMES`  | Comma-separated list of additional allowed databases                                                    | No       | -        |
+| Variable            | Description                                          | Required | Default |
+| ------------------- | ---------------------------------------------------- | -------- | ------- |
+| `DB_TYPE`           | Database type: `mysql` or `postgres`                 | Yes      | -       |
+| `DB_HOST`           | Database server hostname                             | Yes      | -       |
+| `DB_PORT`           | Database server port                                 | Yes      | -       |
+| `DB_NAME`           | Primary database name                                | Yes      | -       |
+| `DB_USER`           | Database username                                    | Yes      | -       |
+| `DB_PASSWORD`       | Database password                                    | Yes      | -       |
+| `DB_SSL_MODE`       | SSL/TLS mode (`none`, `prefer`, `require`)           | No       | `none`  |
+| `DB_MAX_CONNS`      | Maximum open connections                             | No       | 10      |
+| `DB_MAX_IDLE_CONNS` | Maximum idle connections                             | No       | 5       |
+| `DB_ALLOWED_NAMES`  | Comma-separated list of additional allowed databases | No       | -       |
 
 ## Integration with Agentic Editors
 
@@ -194,5 +194,5 @@ Once connected, the following tools become available to your AI assistant:
 - **Database Access Control**: Use `DB_ALLOWED_NAMES` to restrict which databases can be accessed
 - **User Permissions**: Create database users with minimal required permissions
 - **Connection Limits**: Set appropriate `DB_MAX_CONNS` to prevent connection exhaustion
-- **SSL/TLS**: Always use encrypted connections in production (`DB_SSL_MODE=require`)
+- **SSL/TLS**: Always use encrypted connections when available (`DB_SSL_MODE=require`). Available modes: `none` (no encryption, default), `prefer` (attempt SSL, fallback to unencrypted), `require` (mandatory SSL)
 - **Environment Variables**: Store sensitive credentials in environment variables, not in code

@@ -340,18 +340,15 @@ func (m *MySQL) GetDriverName() string {
 func (m *MySQL) buildDSN() string {
 	var params []string
 
-	if m.config.SSLMode != "" {
-		switch m.config.SSLMode {
-		case "none":
-			params = append(params, "tls=false")
-		case "required":
-			params = append(params, "tls=true")
-		case "preferred":
-			params = append(params, "tls=preferred")
-		default:
-			params = append(params, "tls=true")
-		}
+	// Handle SSL mode using common SSL configuration
+	sslMode, err := m.config.ValidateSSLMode()
+	if err != nil {
+		// Default to none mode if invalid
+		sslMode = config.SSLModeNone
 	}
+
+	mysqlSSLMode, _ := sslMode.ToMySQLSSLMode()
+	params = append(params, fmt.Sprintf("tls=%s", mysqlSSLMode))
 
 	params = append(params, "parseTime=true")
 	params = append(params, "timeout=30s")

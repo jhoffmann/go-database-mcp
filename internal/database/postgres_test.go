@@ -150,7 +150,7 @@ func TestPostgreSQL_buildDSN(t *testing.T) {
 			},
 		},
 		{
-			name: "with SSL disable",
+			name: "with SSL none",
 			config: config.DatabaseConfig{
 				Type:     "postgres",
 				Host:     "localhost",
@@ -158,7 +158,7 @@ func TestPostgreSQL_buildDSN(t *testing.T) {
 				Database: "testdb",
 				Username: "user",
 				Password: "pass",
-				SSLMode:  "disable",
+				SSLMode:  "none",
 			},
 			contains: []string{
 				"host=localhost",
@@ -235,7 +235,7 @@ func TestPostgreSQL_buildDSN_DefaultSSL(t *testing.T) {
 		Database: "testdb",
 		Username: "user",
 		Password: "pass",
-		// SSLMode is empty, should default to "prefer"
+		// SSLMode is empty, should default to "none"
 	}
 
 	pg, err := NewPostgreSQL(cfg)
@@ -245,8 +245,8 @@ func TestPostgreSQL_buildDSN_DefaultSSL(t *testing.T) {
 
 	dsn := pg.buildDSN()
 
-	if !contains(dsn, "sslmode=prefer") {
-		t.Errorf("DSN = %q, expected to contain 'sslmode=prefer' for empty SSL mode", dsn)
+	if !contains(dsn, "sslmode=disable") {
+		t.Errorf("DSN = %q, expected to contain 'sslmode=disable' for empty SSL mode", dsn)
 	}
 }
 
@@ -300,7 +300,7 @@ func TestPostgreSQL_buildDSN_AllParameters(t *testing.T) {
 		Database: "testdb",
 		Username: "testuser",
 		Password: "testpass",
-		SSLMode:  "verify-full",
+		SSLMode:  "require",
 	}
 
 	pg, err := NewPostgreSQL(cfg)
@@ -316,7 +316,7 @@ func TestPostgreSQL_buildDSN_AllParameters(t *testing.T) {
 		"user=testuser",
 		"password=testpass",
 		"dbname=testdb",
-		"sslmode=verify-full",
+		"sslmode=require",
 		"connect_timeout=30",
 	}
 

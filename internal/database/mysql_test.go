@@ -162,7 +162,7 @@ func TestMySQL_buildDSN(t *testing.T) {
 			},
 		},
 		{
-			name: "with SSL required",
+			name: "with SSL require",
 			config: config.DatabaseConfig{
 				Type:     "mysql",
 				Host:     "localhost",
@@ -170,7 +170,7 @@ func TestMySQL_buildDSN(t *testing.T) {
 				Database: "testdb",
 				Username: "user",
 				Password: "pass",
-				SSLMode:  "required",
+				SSLMode:  "require",
 			},
 			contains: []string{
 				"user:pass@tcp(localhost:3306)/testdb",
@@ -178,7 +178,7 @@ func TestMySQL_buildDSN(t *testing.T) {
 			},
 		},
 		{
-			name: "with SSL preferred",
+			name: "with SSL prefer",
 			config: config.DatabaseConfig{
 				Type:     "mysql",
 				Host:     "localhost",
@@ -186,11 +186,27 @@ func TestMySQL_buildDSN(t *testing.T) {
 				Database: "testdb",
 				Username: "user",
 				Password: "pass",
-				SSLMode:  "preferred",
+				SSLMode:  "prefer",
 			},
 			contains: []string{
 				"user:pass@tcp(localhost:3306)/testdb",
 				"tls=preferred",
+			},
+		},
+		{
+			name: "with SSL none",
+			config: config.DatabaseConfig{
+				Type:     "mysql",
+				Host:     "localhost",
+				Port:     3306,
+				Database: "testdb",
+				Username: "user",
+				Password: "pass",
+				SSLMode:  "none",
+			},
+			contains: []string{
+				"user:pass@tcp(localhost:3306)/testdb",
+				"tls=false",
 			},
 		},
 		{
@@ -235,7 +251,7 @@ func TestMySQL_buildDSN_DefaultSSL(t *testing.T) {
 		Database: "testdb",
 		Username: "user",
 		Password: "pass",
-		SSLMode:  "unknown", // Should default to tls=true
+		SSLMode:  "unknown", // Should default to none mode -> tls=false
 	}
 
 	mysql, err := NewMySQL(cfg)
@@ -245,8 +261,8 @@ func TestMySQL_buildDSN_DefaultSSL(t *testing.T) {
 
 	dsn := mysql.buildDSN()
 
-	if !contains(dsn, "tls=true") {
-		t.Errorf("DSN = %q, expected to contain 'tls=true' for unknown SSL mode", dsn)
+	if !contains(dsn, "tls=false") {
+		t.Errorf("DSN = %q, expected to contain 'tls=false' for unknown SSL mode", dsn)
 	}
 }
 

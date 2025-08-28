@@ -357,11 +357,15 @@ func (p *PostgreSQL) buildDSN() string {
 	params = append(params, fmt.Sprintf("password=%s", p.config.Password))
 	params = append(params, fmt.Sprintf("dbname=%s", p.config.Database))
 
-	if p.config.SSLMode != "" {
-		params = append(params, fmt.Sprintf("sslmode=%s", p.config.SSLMode))
-	} else {
-		params = append(params, "sslmode=prefer")
+	// Handle SSL mode using common SSL configuration
+	sslMode, err := p.config.ValidateSSLMode()
+	if err != nil {
+		// Default to none mode if invalid
+		sslMode = config.SSLModeNone
 	}
+
+	postgresSSLMode, _ := sslMode.ToPostgreSQLSSLMode()
+	params = append(params, fmt.Sprintf("sslmode=%s", postgresSSLMode))
 
 	params = append(params, "connect_timeout=30")
 
